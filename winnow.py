@@ -33,11 +33,10 @@ def evaluate_winnow(x_test, y_test):
     for i in range(x_test.shape[0]):
         predictions[i,np.argmax(result[i])] = True
 
-    #predictions = np.einsum("ba,ca->bc", x_test, weights) >= threshold
     accuracy = np.mean(np.logical_and.reduce(predictions == y_test,1))
     return accuracy
 
-# Training the Winnow algorithm
+# Training the Winnow algorithm. almost. without threshold - we do the highest value as 1
 def train_winnow(x_train, y_train, alpha):
     global threshold
     global weights
@@ -46,9 +45,6 @@ def train_winnow(x_train, y_train, alpha):
         x = x_train[i]
         yvec = y_train[i]
 
-        #prediction = np.dot(weights, x) >= threshold
-        #total_trues += (np.sum(prediction)-1)
-        
         result = np.dot(weights, x)
         prediction = np.zeros_like(result, dtype=bool)
         prediction[np.argmax(result)] = True
@@ -60,11 +56,6 @@ def train_winnow(x_train, y_train, alpha):
             elif yvec[yi] == 0 and prediction[yi]:
                 weights[yi] *= np.where(x == 1, 1/alpha, 1)
                 weights[yi] /= np.sum(weights[yi])/num_features
-    #threshold += total_trues/x_train.shape[0]*10.0
-
-#plt.ion()  # Turn on interactive mode
-#fig, ax = plt.subplots()
-#im = ax.imshow(np.reshape(weights[1],(28*2,28)), cmap='viridis', vmin=0, vmax=1)  # Display initial weights
 
 for epoch in range(1000000):
     starttime = time.time()
@@ -73,9 +64,3 @@ for epoch in range(1000000):
     accuracy = evaluate_winnow(x_train, y_train_binary)
     endtime = time.time()
     print(f"{epoch} {accuracy:.4f} {alpha} {threshold} {midtime-starttime} {endtime-midtime}")
-    #im.set_array(np.reshape(weights[1],(28*2,28)))  # Update the image data
-    #plt.draw()  # Redraw the current figure
-    #plt.pause(0.1)  # Pause to allow the plot to update
-
-#plt.ioff()  # Turn off interactive mode
-#plt.show()  # Keep the plot open after the loop
