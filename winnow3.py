@@ -45,8 +45,6 @@ def train_winnow(x_train, y_train, alpha):
         if yvec != result_id:
             weights[yvec]      *= np.power(2.0,alpha*x)
             weights[result_id] *= np.power(2.0,-alpha*x)
-            weights[yvec]      /= np.sum(weights[yvec])/num_features
-            weights[result_id] /= np.sum(weights[result_id])/num_features
 
 for epoch in range(1000000):
     starttime = time.time()
@@ -54,5 +52,5 @@ for epoch in range(1000000):
     midtime = time.time()
     accuracy = evaluate_winnow(x_train, y_train)
     endtime = time.time()
-    print(f"{epoch} {accuracy:.4f} {alpha} {midtime-starttime} {endtime-midtime}")
+    print(f"{epoch} {accuracy:.4f} {alpha} {midtime-starttime} {endtime-midtime} {np.mean(weights)}")
     alpha *= 0.5
