@@ -18,8 +18,7 @@ x_train = x_train / 255.0
 x_train = np.concatenate([x_train,1-x_train],axis=-1)
 
 num_classes = 10
-#alpha = 1.0001  # Promotion/demotion factor
-alpha = 0.001
+alpha = 0.1  # Promotion/demotion factor
 num_features = x_train.shape[1]
 weights = np.ones((num_classes, num_features))  # Initialize weights to 1
 
@@ -41,7 +40,7 @@ def train_winnow(x_train, y_train, alpha):
         yvec = y_train[i]
 
         result = np.dot(weights, x)
-        ##result_id = np.argmax(result[i])
+        #result_id = np.argmax(result[i])
         result_id = np.argmax(result)
         if yvec != result_id:
             weights[yvec]      *= np.power(2.0,alpha*x)
@@ -56,4 +55,4 @@ for epoch in range(1000000):
     accuracy = evaluate_winnow(x_train, y_train)
     endtime = time.time()
     print(f"{epoch} {accuracy:.4f} {alpha} {midtime-starttime} {endtime-midtime}")
-    alpha *= 0.99
+    alpha *= 0.5
