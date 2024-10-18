@@ -18,7 +18,8 @@ x_train = x_train / 255.0
 x_train = np.concatenate([x_train,1-x_train],axis=-1)
 
 num_classes = 10
-alpha = 1.0001  # Promotion/demotion factor
+#alpha = 1.0001  # Promotion/demotion factor
+alpha = 0.001
 num_features = x_train.shape[1]
 weights = np.ones((num_classes, num_features))  # Initialize weights to 1
 
@@ -33,18 +34,18 @@ def evaluate_winnow(x_test, y_test):
 def train_winnow(x_train, y_train, alpha):
     global weights
     
-    result = np.einsum("ba,ca->bc", x_train, weights)
+    #result = np.einsum("ba,ca->bc", x_train, weights)
     
     for i in range(x_train.shape[0]):
         x = x_train[i]
         yvec = y_train[i]
 
-        #result = np.dot(weights, x)
-        result_id = np.argmax(result[i])
+        result = np.dot(weights, x)
+        ##result_id = np.argmax(result[i])
+        result_id = np.argmax(result)
         if yvec != result_id:
-        #zzz, see if this can be extended to non-binary values and maybe negative values. use the log/exp trick where the weights are actually raised to a power, so we can just add things. so then we just add the x value instead of check x==1 :-)
-            weights[yvec]      *= np.where(x == 1, alpha,   1)
-            weights[result_id] *= np.where(x == 1, 1/alpha, 1)
+            weights[yvec]      *= np.power(2.0,alpha*x)
+            weights[result_id] *= np.power(2.0,-alpha*x)
             weights[yvec]      /= np.sum(weights[yvec])/num_features
             weights[result_id] /= np.sum(weights[result_id])/num_features
 
@@ -55,3 +56,4 @@ for epoch in range(1000000):
     accuracy = evaluate_winnow(x_train, y_train)
     endtime = time.time()
     print(f"{epoch} {accuracy:.4f} {alpha} {midtime-starttime} {endtime-midtime}")
+    alpha *= 0.99
