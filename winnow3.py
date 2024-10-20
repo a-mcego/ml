@@ -15,7 +15,10 @@ print("Test labels shape:", y_test.shape)
 
 x_train = x_train.reshape(x_train.shape[0], -1)
 x_train = x_train / 255.0
-x_train = np.concatenate([x_train,1-x_train],axis=-1)
+#x_train = np.concatenate([x_train,1-x_train],axis=-1)
+#x_train = np.concatenate([x_train,-x_train],axis=-1)
+#x_train = np.concatenate([x_train,x_train*x_train],axis=-1)
+#x_train = -x_train
 
 num_classes = 10
 alpha = 0.1  # Promotion/demotion factor
@@ -33,18 +36,21 @@ def evaluate_winnow(x_test, y_test):
 def train_winnow(x_train, y_train, alpha):
     global weights
     
-    #result = np.einsum("ba,ca->bc", x_train, weights)
-    
     for i in range(x_train.shape[0]):
         x = x_train[i]
-        yvec = y_train[i]
+        yonehot = np.zeros(10)
+        yonehot[y_train[i]] = 1.0
 
         result = np.dot(weights, x)
-        #result_id = np.argmax(result[i])
         result_id = np.argmax(result)
-        if yvec != result_id:
-            weights[yvec]      *= np.power(2.0,alpha*x)
-            weights[result_id] *= np.power(2.0,-alpha*x)
+        
+        result_onehot = np.zeros(10)
+        result_onehot[result_id] = 1.0
+
+        delta = yonehot-result_onehot
+        delta = delta[:,None]
+        
+        weights *= np.power(2.0,alpha*x*delta)
 
 for epoch in range(1000000):
     starttime = time.time()
@@ -53,4 +59,6 @@ for epoch in range(1000000):
     accuracy = evaluate_winnow(x_train, y_train)
     endtime = time.time()
     print(f"{epoch} {accuracy:.4f} {alpha} {midtime-starttime} {endtime-midtime} {np.mean(weights)}")
-    alpha *= 0.5
+    alpha *= 0.8
+    if alpha < 1e-7:
+        alpha = 0.1
